@@ -1,85 +1,35 @@
-import streamlit as st
+from datetime import datetime
+
+from frontend.chatbot import build_chatbot
+from frontend.description import build_description
+from frontend.filters import Filters, build_filters
 
 
 def build_page():
 
-    # Initialize variables
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    # description
+    build_description(
+        content="""Posez des questions sur le chantier de Saint-Amand.
+            Une réponse sourcée et raisonnée sera faite à partir des CRs.
+            Pour obtenir une réponse plus pertinente, jouez avec les filtres (dates, projets, numéro de CR)."""
+    )
 
-    # --- Three buttons
-    col1, col2 = st.columns(2)
+    # filters
+    filters = Filters(
+        projects=["Lot 1", "Lot 2", "Lot 3"],
+        date_min=datetime(2025, 1, 1),
+        date_max="today",
+        cr_num_min=1,
+        cr_num_max=90,
+    )
+    filters = build_filters(bounds=filters, default=filters)
 
-    # dowload conversation
-    with col1:
-        chat_text = "\n\n".join(
-            [
-                f"{m['role'].capitalize()}: {m['content']}"
-                for m in st.session_state.messages
-            ]
-        )
-        st.download_button(
-            label="📥 Télécharger la conversation",
-            data=chat_text,
-            file_name="conversation.txt",
-            mime="text/plain",
-            use_container_width=True,
-        )
-
-    # clear conversation
-    with col2:
-        if st.button("🧹 Effacer la conversation", use_container_width=True):
-            st.session_state.messages = []
-            st.rerun()
-
-    # --- POP-UP RÉGLAGES
-    with st.expander("⚙️ Filtres", expanded=False):
-        # 1. Liste déroulante
-        option = st.selectbox(
-            "Choisissez une option :", ["Option A", "Option B", "Option C"]
-        )
-
-        # 2. Date min / max
-        col1, col2 = st.columns(2)
-        with col1:
-            date_min = st.date_input("Date min", value=None)
-        with col2:
-            date_max = st.date_input("Date max", value=None)
-
-        # 3. Nombre min / max
-        number_min, number_max = st.slider(
-            "Sélectionnez une plage de valeurs numériques :",
-            min_value=0,
-            max_value=100,
-            value=(10, 90),
-        )
-
-        # Affichage des valeurs choisies (facultatif)
-        st.markdown(f"✅ Option sélectionnée : **{option}**")
-        st.markdown(f"📅 Plage de dates : {date_min} → {date_max}")
-        st.markdown(f"🔢 Plage numérique : {number_min} → {number_max}")
-
-    # --- display Chat bot
-    chatbot()
-
-
-def chatbot():
-    # Display all previous messages
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-
-    # User input
-    if prompt := st.chat_input("Ask me anything..."):
-        # Store user message
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        # Simulate bot reply (replace with real LLM call here)
-        response = (
-            f"You said : **{prompt}**"  # replace this line with a real model call
-        )
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        with st.chat_message("assistant"):
-            st.markdown(response)
+    # chatbot and its buttons
+    build_chatbot(
+        "saint-amand",
+        lambda question: (
+            f"{[filters.projects[0], filters.date_max, filters.cr_num_min]}"
+            + "\n"
+            + f"You said : **{question}**"  # replace this line with a real model call
+        ),
+    )
