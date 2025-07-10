@@ -42,16 +42,18 @@ def build_filters(bounds: Filters, default: Filters) -> Filters:
 
         # 3. Nombre min / max
         number_min, number_max = st.slider(
-            "Sélectionnez une plage de valeurs numériques :",
+            "Sélectionnez une plage de numéro de CR :",
             min_value=bounds.cr_num_min,
             max_value=bounds.cr_num_max,
             value=(default.cr_num_min, default.cr_num_max),
         )
 
         # Affichage des valeurs choisies (facultatif)
-        st.markdown(f"✅ Projet sélectionnée : **{', '.join(projects)}**")
+        st.markdown(
+            f"✅ Projet(s) sélectionnée(s) : **{', '.join(projects).strip(' ')}**"
+        )
         st.markdown(f"📅 Plage de dates : **{date_min}** → **{date_max}**")
-        st.markdown(f"🔢 Plage numérique : {number_min} → **{number_max}**")
+        st.markdown(f"🔢 Plage numéro CR : **{number_min}** → **{number_max}**")
 
     return Filters(
         projects=projects,

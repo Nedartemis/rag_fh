@@ -1,34 +1,72 @@
-import os
 from datetime import datetime
-from pathlib import Path
 
 import streamlit as st
 
-import frontend.helper as helper
+import frontend.front_helper as front_helper
+from backend.saint_amand.write_chrono import extract_infos_and_write_doc
+from frontend.buttons import build_dowload_event
 from frontend.description import build_description
 from frontend.filters import Filters, build_filters
+from vars import PATH_TMP
 
-PATH_TMP = Path("tmp")
+
+def compute_chrono_bytes(filters: Filters):
+
+    path_docx = PATH_TMP / "chrono.docx"
+
+    # write
+    extract_infos_and_write_doc(path_docx_to_write=path_docx, filters=filters)
+
+    # load
+    bytes = front_helper.read(path_docx)
+
+    return bytes
 
 
 def build_page():
 
     # description
-    build_description("à faire")
+    build_description(
+        """
+        Télécharger l'ensemble des **actions** de chaque projet du chantier **Saint-Amand**.
+        Les actions **identiques** répétées dans plusieurs CRs sont **rassemblées**.
+        Les actions sont **rangées par chronologie**.
+        Bien que condensées, ces informations restent très **volumineuses**.
+        N'hésiter pas à jouer avec les **filtres** pour récupérer les infos qui vous seront utiles sans être submergé.
+    """
+    )
 
     # filters
-    filters = Filters(
-        projects=["Lot 1", "Lot 2", "Lot 3"],
-        date_min=datetime(2025, 1, 1),
-        date_max="today",
+    bounds = Filters(
+        projects=["Lot 2 ", "Lot 14 ", "Lot 24 "],
+        date_min=datetime(2011, 3, 15),
+        date_max=datetime(2013, 11, 21),
         cr_num_min=1,
-        cr_num_max=90,
+        cr_num_max=91,
     )
-    build_filters(filters, filters)
+    default = Filters(
+        projects=["Lot 2 ", "Lot 14 "],
+        date_min=bounds.date_min,
+        date_max=bounds.date_max,
+        cr_num_min=1,
+        cr_num_max=5,
+    )
+    filters = build_filters(bounds=bounds, default=default)
 
     # button dowload chronology
-    st.download_button(
-        label="Télécharger chronologie",
-        data=b"Hello world",
-        file_name="toto.txt",
+
+    def format_date(date: datetime):
+        return date.strftime("%d%m%Y")
+
+    filename = "chronology_cr-{}-{}_{}-{}_{}.docx".format(
+        filters.cr_num_min,
+        filters.cr_num_max,
+        format_date(filters.date_min),
+        format_date(filters.date_max),
+        "-".join(e[:6] for e in filters.projects),
+    )
+
+    st.button(
+        "Télécharger chronologie",
+        on_click=build_dowload_event(lambda: compute_chrono_bytes(filters), filename),
     )

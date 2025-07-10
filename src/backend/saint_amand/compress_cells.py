@@ -4,15 +4,22 @@ import numpy as np
 import pandas as pd
 
 DISTANCE_STRING_MAX_GROUP = 5
+PERCENTAGE_STRING_MAX_GROUP = 10
 
 
 def custom_agg(series: pd.Series):
 
-    if isinstance(series.iloc[0], str) or isinstance(series.iloc[0], np.int64):
+    if isinstance(series.iloc[0], str):  # or isinstance(series.iloc[0], np.int64):
         return series.iloc[0]
 
-    if isinstance(series.iloc[0], np.ndarray):
-        return sum([e.tolist() for e in series], [])
+    if isinstance(series.iloc[0], np.ndarray) or isinstance(series.iloc[0], list):
+        return sum(
+            [
+                (e.tolist() if isinstance(series.iloc[0], np.ndarray) else e)
+                for e in series
+            ],
+            [],
+        )
 
     raise Exception(f"Not handled (type:{type(series.iloc[0])})")
 
@@ -20,11 +27,13 @@ def custom_agg(series: pd.Series):
 def compress_cells(project_title: str, df_tables: pd.DataFrame) -> pd.DataFrame:
 
     # 1. simple group by cell string
-    df_grouped = (
-        df_tables.groupby("cell")
-        .aggregate({"date": "unique", "num_cr": "unique", "page_table_start": "unique"})
-        .reset_index()
-    )
+    aggregatation = {
+        "date": "unique",
+        "num_cr": list,
+        "page_table_start": list,
+        "line_order": list,
+    }
+    df_grouped = df_tables.groupby("cell").aggregate(aggregatation).reset_index()
 
     # 2. compute levenshtein distance for all combinations
     distances = []
@@ -33,14 +42,22 @@ def compress_cells(project_title: str, df_tables: pd.DataFrame) -> pd.DataFrame:
             df_grouped["cell"].iloc[idx1 + 1 :], start=idx1 + 1
         ):
             score = Levenshtein.distance(cell1, cell2)
-            distances.append({"idx1": idx1, "idx2": idx2, "dst": score})
+            distances.append(
+                {
+                    "idx1": idx1,
+                    "idx2": idx2,
+                    "dst": score,
+                    "len_min": min(len(cell1), len(cell2)),
+                }
+            )
     df_distances = pd.DataFrame(distances)
 
     # 3. make groups of cells to merged with the Graph connected components algorithm
 
     # keep only the links between near strings
     df_distances_filtred = df_distances[
-        df_distances["dst"] <= DISTANCE_STRING_MAX_GROUP
+        df_distances["dst"]
+        <= df_distances["len_min"] * PERCENTAGE_STRING_MAX_GROUP / 100
     ]
 
     # build graph
@@ -65,11 +82,13 @@ def compress_cells(project_title: str, df_tables: pd.DataFrame) -> pd.DataFrame:
 
     # 5. clean and cheks
 
+    df = df_compressed_info
+
     # erase index group
-    df_compressed_info.index = range(len(df_compressed_info))
+    df.index = range(len(df))
 
     # rename
-    df_compressed_info.rename(
+    df.rename(
         columns={
             "date": "dates",
             "num_cr": "nums_cr",
@@ -79,12 +98,20 @@ def compress_cells(project_title: str, df_tables: pd.DataFrame) -> pd.DataFrame:
     )
 
     # remove duplicated dates
-    df_compressed_info["dates"] = df_compressed_info["dates"].apply(
-        lambda dates: np.unique(dates)
+    df["dates"] = df["dates"].apply(lambda dates: np.unique(dates))
+
+    # take the line_order of the first CR of each action
+    df["line_order"] = df.apply(
+        lambda row: row["line_order"][np.array(row["nums_cr"]).argmin()], axis="columns"
     )
 
+    # sort
+    for col in ["dates", "nums_cr", "pages_table_start"]:
+        df[col] = df[col].apply(lambda lst: sorted(lst))
+
     # add title
-    df_compressed_info["title"] = project_title
+    df["title"] = project_title
 
     # 6. return
+    assert "dates" in df_compressed_info.columns
     return df_compressed_info

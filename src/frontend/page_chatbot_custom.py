@@ -4,7 +4,7 @@ from pathlib import Path
 
 import streamlit as st
 
-import frontend.helper as helper
+import frontend.front_helper as front_helper
 from frontend.chatbot import build_chatbot
 from frontend.description import build_description
 from frontend.filters import Filters, build_filters
@@ -27,11 +27,11 @@ def build_page():
         print(len(uploaded_result))
         for uploaded_file in uploaded_result:
             if uploaded_file.name.endswith(".zip"):
-                helper.extract_zip_file(
+                front_helper.extract_zip_file(
                     uploaded_file.getvalue(), path_dst=str(PATH_TMP)
                 )
             else:
-                helper.write(
+                front_helper.write(
                     uploaded_file.getvalue(),
                     path_dst=PATH_TMP / os.path.basename(uploaded_file.name),
                 )

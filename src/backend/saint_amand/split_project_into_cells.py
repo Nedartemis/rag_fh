@@ -18,15 +18,15 @@ def _extract_cells_from_raw_text_table(
     company = lines[1]
 
     # init vars
-    cells: List[Tuple[str, str]] = []
+    cells: List[Tuple[str, str, int]] = []
     buffer = ""
     date = None
 
     # go through cells line
-    for line in lines[2:]:
+    for line_order, line in enumerate(lines[2:]):
         if line.strip(" ") == "":  # two following newlines --> two differents cells
             # store the cell
-            cells.append((date, buffer))
+            cells.append((date, buffer, line_order))
             # reset buffer
             buffer = ""
 
@@ -35,7 +35,7 @@ def _extract_cells_from_raw_text_table(
         ):  # match a date -> end cell and start of a new one
 
             # store the cell
-            cells.append((date, buffer))
+            cells.append((date, buffer, line_order))
 
             # extract the date
             date_str = line[:8]
@@ -59,7 +59,11 @@ def _extract_cells_from_raw_text_table(
             buffer += line
 
     # remove empty cells
-    cells = [(date, text) for date, text in cells if text.strip(" ") != ""]
+    cells = [
+        (date, text, line_order)
+        for date, text, line_order in cells
+        if text.strip(" ") != ""
+    ]
 
     return [
         {
@@ -70,8 +74,9 @@ def _extract_cells_from_raw_text_table(
             "company": company,
             "date": date,
             "cell": cell,
+            "line_order": line_order,
         }
-        for date, cell in cells
+        for date, cell, line_order in cells
     ]
 
 
