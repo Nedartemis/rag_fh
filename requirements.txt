@@ -1,1 +1,6 @@
 streamlit
+fire
+tqdm
+networkx
+Levenshtein
+pymupdf
