@@ -71,3 +71,18 @@ def build_page():
         "Télécharger chronologie",
         on_click=build_dowload_event(lambda: compute_chrono_bytes(filters), filename),
     )
+
+    st.download_button(
+        label="Download button", data=b"Hello world", file_name="hello.txt"
+    )
+
+    col1, col2 = st.columns(2)
+
+    col1.button(
+        "forcing button",
+        on_click=lambda: col2.download_button(
+            label="Download button3",
+            data=compute_chrono_bytes(filters),
+            file_name=filename,
+        ),
+    )
