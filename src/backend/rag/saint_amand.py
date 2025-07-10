@@ -17,7 +17,8 @@ def load_data_retriever() -> pd.DataFrame:
     print("Loading data...")
     df = load_df_compressed()
     df = filter_compressed(
-        df, projects_to_extract=["Lot 2 ", "Lot 14 "], cr_num_bounds=(1, 10)
+        df,
+        projects_to_extract=None,  # projects_to_extract=["Lot 2 ", "Lot 14 "], cr_num_bounds=(1, 10)
     )
 
     return df
