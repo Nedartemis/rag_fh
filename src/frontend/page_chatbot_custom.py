@@ -9,8 +9,9 @@ from frontend.chatbot import build_chatbot
 from frontend.description import build_description
 from frontend.filters import Filters, build_filters
 
-PATH_TMP = Path("tmp")
+from vars import PATH_TMP
 
+def
 
 def build_page():
 

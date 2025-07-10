@@ -67,21 +67,29 @@ def build_page():
         "-".join(e[:6] for e in filters.projects),
     )
 
-    st.button(
-        "Télécharger chronologie",
-        on_click=build_dowload_event(lambda: compute_chrono_bytes(filters), filename),
-    )
+    # st.button(
+    #     "Télécharger chronologie",
+    #     on_click=build_dowload_event(lambda: compute_chrono_bytes(filters), filename),
+    # )
 
-    st.download_button(
-        label="Download button", data=b"Hello world", file_name="hello.txt"
+    st.markdown(
+        """
+    <style>
+    div.stButton > button {
+        width: 100%;
+        height: 100%;
+    }
+    </style>
+    """,
+        unsafe_allow_html=True,
     )
 
     col1, col2 = st.columns(2)
 
     col1.button(
-        "forcing button",
+        "Calculer chronologie",
         on_click=lambda: col2.download_button(
-            label="Download button3",
+            label="Télécharger chronologie",
             data=compute_chrono_bytes(filters),
             file_name=filename,
         ),
