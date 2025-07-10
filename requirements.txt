@@ -6,3 +6,5 @@ Levenshtein
 pymupdf
 sentence-transformers
 python-docx
+pytesseract
+pdf2image
