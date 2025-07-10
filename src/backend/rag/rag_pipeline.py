@@ -22,7 +22,6 @@ class RagPipeline:
         # keep n chunks
         print(df)
         df = df.iloc[:10]
-        best_chunks = df["cell"].tolist()
 
         contexts = [
             f"""Nom projet {titre} ; Numéro CR {', '.join(str(num) for num in nums_cr)} ;
