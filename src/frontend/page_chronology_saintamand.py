@@ -15,6 +15,7 @@ def compute_chrono_bytes(filters: Filters):
     path_docx = PATH_TMP / "chrono.docx"
 
     # write
+    print("Write data...")
     extract_infos_and_write_doc(path_docx_to_write=path_docx, filters=filters)
 
     # load

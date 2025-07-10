@@ -1,8 +1,6 @@
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Tuple
 
-import numpy as np
 import pandas as pd
 
 from backend.saint_amand.extract_all_infos import (
