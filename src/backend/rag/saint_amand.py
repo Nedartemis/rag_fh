@@ -10,7 +10,7 @@ from backend.saint_amand.extract_all_infos import (
 from frontend.filters import Filters
 from vars import PATH_MODEL_MINI
 
-FILENAME_EMBEDDINGS = "test.pt"
+FILENAME_EMBEDDINGS = "embeddings_saint_amand.pt"
 
 
 def load_data_retriever() -> pd.DataFrame:
