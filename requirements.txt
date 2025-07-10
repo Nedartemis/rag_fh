@@ -4,3 +4,5 @@ tqdm
 networkx
 Levenshtein
 pymupdf
+sentence-transformers
+python-docx
