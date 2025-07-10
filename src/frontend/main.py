@@ -17,7 +17,7 @@ PAGE3 = "Question-Réponse  \nPersonalisable"
 
 # --- Initialize selected page in session state
 if "page" not in st.session_state:
-    st.session_state.page = PAGE1
+    st.session_state.page = PAGE3
 
 # st.set_page_config(layout="wide")
 

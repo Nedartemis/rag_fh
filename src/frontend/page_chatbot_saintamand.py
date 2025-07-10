@@ -2,7 +2,7 @@ from datetime import datetime
 
 import streamlit as st
 
-from backend.rag.rag_pipeline import RagPipeline
+from backend.rag.saint_amand import RagSaintAmand
 from frontend.chatbot import build_chatbot
 from frontend.description import build_description
 from frontend.filters import Filters, build_filters
@@ -11,14 +11,13 @@ from frontend.filters import Filters, build_filters
 def ask_question(messages: dict, filters: Filters) -> str:
     question = messages[-1]["content"]
 
-    rag: RagPipeline = st.session_state.rag
+    rag: RagSaintAmand = st.session_state.rag
 
     answer = rag.ask(question, filters)
-
     return answer
 
 
-def dummy_response(messages: dict, filters) -> str:
+def dummy_response(messages: dict) -> str:
     question = messages[-1]["content"]
     return f"You said : {question}"
 
@@ -26,7 +25,7 @@ def dummy_response(messages: dict, filters) -> str:
 def build_page():
 
     if "rag" not in st.session_state:
-        st.session_state.rag = RagPipeline()
+        st.session_state.rag = RagSaintAmand()
 
     # description
     build_description(
@@ -55,7 +54,5 @@ def build_page():
     # chatbot and its buttons
     build_chatbot(
         "saint-amand",
-        lambda messages: ask_question(
-            messages, filters
-        ),  # ask_question(messages, filters=filters),
+        lambda messages: ask_question(messages, filters),  # ask_question(messages),
     )

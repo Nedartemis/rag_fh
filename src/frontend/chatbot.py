@@ -63,7 +63,7 @@ def build_chatbot(label: str, get_answer: Callable[[dict], str]):
             st.markdown(msg["content"])
 
     # User input
-    if prompt := st.chat_input("Ask me anything..."):
+    if prompt := st.chat_input("Posez vos questions ici..."):
         # Store user message
         append_message("user", prompt)
         with st.chat_message("user"):

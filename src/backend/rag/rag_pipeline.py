@@ -1,36 +1,65 @@
 import os
+from abc import abstractmethod
 from datetime import datetime
+from typing import Callable, List
+
+import numpy as np
+import pandas as pd
 
 from backend.rag.claude_client import ClaudeClient
-from backend.rag.saint_amand import Toto
+from backend.rag.retriever import SentenceTransformerWrapper
 from frontend.filters import Filters
+from vars import PATH_MODEL_MINI
 
 
 class RagPipeline:
 
     def __init__(self):
-        # init documentary base and retriever
-        self.toto = Toto()
+        # retriever
+        self.retriever = SentenceTransformerWrapper(PATH_MODEL_MINI)
 
         # init LLM
         self.llm = ClaudeClient(os.environ["CLAUDE_KEY"])
 
-    def ask(self, question: str, filters: Filters) -> str:
-        # retrieve order among the documentary base
-        df = self.toto.compute_order(question, filters)
+    @abstractmethod
+    def format_chunks(self, df: pd.DataFrame) -> List[str]:
+        pass
 
-        # keep n chunks
+    @abstractmethod
+    def get_instructions(self) -> List[str]:
+        pass
+
+    @abstractmethod
+    def get_n(self) -> int:
+        pass
+
+    def _ask(
+        self,
+        question: str,
+        df: pd.DataFrame,
+        embeddings: np.ndarray,
+    ) -> str:
+
+        # check consistency
+        assert len(df) == embeddings.shape[0]
+
+        # compute question embeddings
+        question_embeddings = self.retriever.encode(question)
+
+        # compute similarity
+        similarities = self.retriever.similarity(embeddings, question_embeddings)
+        assert similarities.shape == (len(df), 1)
+
+        # join it with all the data
+        df["similarity"] = similarities.reshape((len(df),))
+        df.sort_values("similarity", ascending=False, inplace=True)
+
+        # keep n top chunks
         print(df)
-        df = df.iloc[:10]
+        df = df.iloc[: self.get_n()]
 
-        contexts = [
-            f"""Nom projet {titre} ; Numéro CR {', '.join(str(num) for num in nums_cr)} ;
-            Pages {', '.join(str(page) for page in pages)} :
-            {content}"""
-            for titre, nums_cr, pages, content in zip(
-                df["title"], df["nums_cr"], df["pages_table_start"], df["cell"]
-            )
-        ]
+        # format chunks
+        contexts = self.format_chunks(df)
 
         # ask the llm
         m = f"""Utilisez les informations suivantes :
@@ -40,7 +69,7 @@ class RagPipeline:
             {question}
 
             Ne pas inclure tout ce qui ne semble pas pertinent.
-            Bien mettre les sources de l'information (nom projet, numéro cr et pages).
+            {'\n'.join(self.get_instructions())}.
         """
         print(m)
 
@@ -57,17 +86,5 @@ class RagPipeline:
 
 
 if __name__ == "__main__":
-    import fire
 
-    rag = RagPipeline()
-    res = rag.ask(
-        "Quelles sont les aléas survenus ?",
-        Filters(
-            projects=["Lot 2 ", "Lot 14 "],
-            date_min=datetime(2011, 3, 15),
-            date_max=datetime(2013, 11, 21),
-            cr_num_min=1,
-            cr_num_max=5,
-        ),
-    )
-    print(res)
+    pass

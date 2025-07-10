@@ -1,6 +1,10 @@
+from datetime import datetime
+from typing import List, Tuple
+
 import numpy as np
 import pandas as pd
 
+from backend.rag.rag_pipeline import RagPipeline
 from backend.rag.retriever import SentenceTransformerWrapper
 from backend.saint_amand.extract_all_infos import (
     convert_filters_to_args,
@@ -47,15 +51,33 @@ def load_numerization() -> np.ndarray:
     return SentenceTransformerWrapper.load_embeddings(filename=FILENAME_EMBEDDINGS)
 
 
-class Toto:
+class RagSaintAmand(RagPipeline):
     def __init__(self):
+        super().__init__()
         self.df = load_data_retriever()
         self.embeddings = load_numerization()
-        self.retriever = SentenceTransformerWrapper(PATH_MODEL_MINI)
 
         assert len(self.df) == self.embeddings.shape[0]
 
-    def compute_order(self, question: str, filters: Filters) -> pd.DataFrame:
+    def get_instructions(self):
+        return [
+            "Bien mettre les sources de l'information (nom projet, numéro cr et pages)"
+        ]
+
+    def format_chunks(self, df):
+        return [
+            f"""Nom projet {titre} ; Numéro CR {', '.join(str(num) for num in nums_cr)} ;
+            Pages {', '.join(str(page) for page in pages)} :
+            {content}"""
+            for titre, nums_cr, pages, content in zip(
+                df["title"], df["nums_cr"], df["pages_table_start"], df["cell"]
+            )
+        ]
+
+    def get_n(self) -> int:
+        return 10
+
+    def ask(self, question: str, filters: Filters) -> Tuple[pd.DataFrame, np.ndarray]:
 
         # filter data
         print(f"Len before : {len(self.df)}")
@@ -67,21 +89,21 @@ class Toto:
         # filter embeddings
         embeddings = self.embeddings[df.index]
 
-        assert len(df) == embeddings.shape[0]
-
-        # compute question embeddings
-        question_embeddings = self.retriever.encode(question)
-
-        # compute similarity
-        similarities = self.retriever.similarity(embeddings, question_embeddings)
-        assert similarities.shape == (len(df), 1)
-
-        # join it with all the data
-        df["similarity"] = similarities.reshape((len(df),))
-        df.sort_values("similarity", ascending=False, inplace=True)
-
-        return df
+        return super()._ask(question, df, embeddings)
 
 
 if __name__ == "__main__":
-    numerize_data()
+    if False:
+        numerize_data()
+    else:
+        rag_saint_amand = RagSaintAmand()
+
+        question = "Quelles sont les aléas survenus ?"
+        filters = Filters(
+            projects=["Lot 2 ", "Lot 14 "],
+            date_min=datetime(2011, 3, 15),
+            date_max=datetime(2013, 11, 21),
+            cr_num_min=1,
+            cr_num_max=5,
+        )
+        rag_saint_amand.ask(question, filters)
