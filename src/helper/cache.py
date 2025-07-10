@@ -3,7 +3,9 @@ import os
 from pathlib import Path
 from typing import Any, Optional
 
+import numpy as np
 import pandas as pd
+import torch
 
 from vars import PATH_CACHE
 
@@ -29,6 +31,8 @@ def load(filename: str) -> Optional[Any]:
     elif path.suffix == ".json":
         with open(path, mode="r") as fr:
             obj = json.load(fr)
+    elif path.suffix == ".pt":
+        obj = torch.load(path, weights_only=False)
     elif path.suffix == ".csv":
         obj = pd.read_csv(path)
     else:
@@ -55,6 +59,12 @@ def save(filename: str, obj: Any, ext: Optional[str] = None) -> None:
     elif path.suffix == ".json":
         with open(path, mode="w") as fw:
             json.dump(obj, fw)
+    elif path.suffix == ".pt":
+        if not isinstance(obj, torch.Tensor) and not isinstance(obj, np.ndarray):
+            raise ValueError(
+                f"Extension '.pt' is only handled with a tensor or a numpy array, got {type(obj)}"
+            )
+        torch.save(obj, path)
     elif path.suffix == ".csv":
         if not isinstance(obj, pd.DataFrame):
             raise ValueError(

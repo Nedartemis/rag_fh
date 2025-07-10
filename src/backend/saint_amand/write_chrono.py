@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from backend.saint_amand.extract_all_infos import (
+    convert_filters_to_args,
     extract_infos_saint_amand,
     filter_compressed,
     load_df_compressed,
@@ -95,23 +96,15 @@ def write_chrono(
 
 def extract_infos_and_write_doc(path_docx_to_write: Path, filters: Filters) -> None:
 
-    params = {
-        "projects_to_extract": filters.projects,
-        "date_bounds": (
-            (filters.date_min, filters.date_max) if filters.date_min else None
-        ),
-        "cr_num_bounds": (
-            (filters.cr_num_min, filters.cr_num_max) if filters.cr_num_min else None
-        ),
-    }
+    filters_args = convert_filters_to_args(filters)
 
     # 1. get infos
     df_compressed = load_df_compressed()
     if df_compressed is not None:
-        df_compressed = filter_compressed(df_compressed, **params)
+        df_compressed = filter_compressed(df_compressed, **filters_args)
     else:  # need to compute
         _, _, df_compressed = extract_infos_saint_amand(
-            projects_to_extract=filters.projects, **params
+            projects_to_extract=filters.projects, **filters_args
         )
 
     # 2. write
@@ -119,7 +112,7 @@ def extract_infos_and_write_doc(path_docx_to_write: Path, filters: Filters) -> N
     # rename columns
     df_compressed.rename(columns={"pages_table_start": "pages"}, inplace=True)
 
-    write_chrono(df_compressed, path_docx_to_write, params["cr_num_bounds"])
+    write_chrono(df_compressed, path_docx_to_write, filters_args["cr_num_bounds"])
 
 
 if __name__ == "__main__":

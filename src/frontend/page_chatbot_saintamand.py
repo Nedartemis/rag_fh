@@ -1,11 +1,32 @@
 from datetime import datetime
 
+import streamlit as st
+
+from backend.rag.rag_pipeline import RagPipeline
 from frontend.chatbot import build_chatbot
 from frontend.description import build_description
 from frontend.filters import Filters, build_filters
 
 
+def ask_question(messages: dict, filters: Filters) -> str:
+    question = messages[-1]["content"]
+
+    rag: RagPipeline = st.session_state.rag
+
+    answer = rag.ask(question, filters)
+
+    return answer
+
+
+def dummy_response(messages: dict, filters) -> str:
+    question = messages[-1]["content"]
+    return f"You said : {question}"
+
+
 def build_page():
+
+    if "rag" not in st.session_state:
+        st.session_state.rag = RagPipeline()
 
     # description
     build_description(
@@ -15,21 +36,26 @@ def build_page():
     )
 
     # filters
-    filters = Filters(
-        projects=["Lot 1", "Lot 2", "Lot 3"],
-        date_min=datetime(2025, 1, 1),
-        date_max="today",
+    bounds = Filters(
+        projects=["Lot 2 ", "Lot 14 ", "Lot 24 "],
+        date_min=datetime(2011, 3, 15),
+        date_max=datetime(2013, 11, 21),
         cr_num_min=1,
-        cr_num_max=90,
+        cr_num_max=91,
     )
-    filters = build_filters(bounds=filters, default=filters)
+    default = Filters(
+        projects=["Lot 2 "],
+        date_min=bounds.date_min,
+        date_max=bounds.date_max,
+        cr_num_min=1,
+        cr_num_max=5,
+    )
+    filters = build_filters(bounds=bounds, default=default)
 
     # chatbot and its buttons
     build_chatbot(
         "saint-amand",
-        lambda question: (
-            f"{[filters.projects[0], filters.date_max, filters.cr_num_min]}"
-            + "\n"
-            + f"You said : **{question}**"  # replace this line with a real model call
-        ),
+        lambda messages: ask_question(
+            messages, filters
+        ),  # ask_question(messages, filters=filters),
     )

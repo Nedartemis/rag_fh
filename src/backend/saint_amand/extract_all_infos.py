@@ -4,6 +4,7 @@ from functools import reduce
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
@@ -12,8 +13,24 @@ from backend.saint_amand.compress_cells import compress_cells
 from backend.saint_amand.compute_cr_page_number import compute_cr_page_numbers
 from backend.saint_amand.split_page_into_projects import split_pages_into_projects
 from backend.saint_amand.split_project_into_cells import split_projects_into_cells
+from frontend.filters import Filters
 from helper import cache
 from vars import PATH_DOCS, PATH_SAINT_AMAND_INTEGRAL
+
+# ----------------- Helper -----------------
+
+
+def convert_filters_to_args(filters: Filters) -> dict:
+    return {
+        "projects_to_extract": filters.projects,
+        "date_bounds": (
+            (filters.date_min, filters.date_max) if filters.date_min else None
+        ),
+        "cr_num_bounds": (
+            (filters.cr_num_min, filters.cr_num_max) if filters.cr_num_min else None
+        ),
+    }
+
 
 # ----------------- Compute conditions -----------------
 
@@ -37,12 +54,16 @@ def compute_cond_projects(
     if not projects_to_extract:
         return pd.Series([True] * len(df))
 
+    if isinstance(projects_to_extract, str):
+        projects_to_extract = [projects_to_extract]
+
     project_titles_to_extract = [
         title
         for title in df["title"].unique()
         for to_extract in projects_to_extract
         if to_extract in title
     ]
+    project_titles_to_extract = np.unique(project_titles_to_extract)
     return df["title"].isin(project_titles_to_extract)
 
 

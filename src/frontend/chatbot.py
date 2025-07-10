@@ -3,7 +3,7 @@ from typing import Any, Callable, Dict
 import streamlit as st
 
 
-def build_chatbot(label: str, get_answer: Callable[[str], str]):
+def build_chatbot(label: str, get_answer: Callable[[dict], str]):
 
     def get_messages() -> list:
         return st.session_state.chat_bot_messages[label]
@@ -70,7 +70,13 @@ def build_chatbot(label: str, get_answer: Callable[[str], str]):
             st.markdown(prompt)
 
         # Simulate bot reply (replace with real LLM call here)
-        response = get_answer(prompt)
+        response = get_answer(get_messages())
         append_message("assistant", response)
         with st.chat_message("assistant"):
             st.markdown(response)
+            # st.text_area(
+            #     "Click to copy the response", response, height=100, key="copy_response"
+            # )
+
+            # st.code(response, language="")  # Enables copy button automatically
+            st.rerun()
