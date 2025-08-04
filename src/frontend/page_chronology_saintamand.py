@@ -45,14 +45,14 @@ def build_page():
         cr_num_min=1,
         cr_num_max=91,
     )
-    default = Filters(
-        projects=["Lot 2 ", "Lot 14 "],
-        date_min=bounds.date_min,
-        date_max=bounds.date_max,
-        cr_num_min=1,
-        cr_num_max=5,
-    )
-    filters = build_filters(bounds=bounds, default=default)
+    # default = Filters(
+    #     projects=["Lot 2 ", "Lot 14 "],
+    #     date_min=bounds.date_min,
+    #     date_max=bounds.date_max,
+    #     cr_num_min=1,
+    #     cr_num_max=5,
+    # )
+    filters = build_filters(bounds=bounds, default=bounds, label="chrono")
 
     # button dowload chronology
 

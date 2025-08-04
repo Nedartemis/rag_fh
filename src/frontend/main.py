@@ -39,12 +39,8 @@ cols = st.columns(3)
 pages_details = list(
     zip(
         cols,
-        [PAGE1, PAGE2, PAGE3],
-        [
-            page_chatbot_saintamand.build_page,
-            page_chronology_saintamand.build_page,
-            page_chatbot_custom.build_page,
-        ],
+        [PAGE1, PAGE2],
+        [page_chatbot_saintamand.build_page, page_chronology_saintamand.build_page],
     )
 )
 

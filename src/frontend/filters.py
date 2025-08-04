@@ -14,7 +14,7 @@ class Filters:
     cr_num_max: int
 
 
-def build_filters(bounds: Filters, default: Filters) -> Filters:
+def build_filters(bounds: Filters, default: Filters, label: str) -> Filters:
 
     # --- POP-UP RÉGLAGES
     with st.expander("⚙️ Filtres", expanded=False):
