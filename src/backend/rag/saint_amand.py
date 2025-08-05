@@ -75,7 +75,7 @@ class RagSaintAmand(RagPipeline):
         ]
 
     def get_n(self) -> int:
-        return 10
+        return 30
 
     def ask(self, question: str, filters: Filters) -> Tuple[pd.DataFrame, np.ndarray]:
 
