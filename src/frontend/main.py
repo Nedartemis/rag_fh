@@ -11,8 +11,8 @@ from frontend import (
     page_chronology_saintamand,
 )
 
-PAGE1 = "Question-Réponse  \nSaint-Amand"
-PAGE2 = "Chronologie  \nSaint-Amand"
+PAGE1 = "Question-Réponse  \nMaubeuge"
+PAGE2 = "Chronologie  \nMaubeuge"
 PAGE3 = "Question-Réponse  \nPersonalisable"
 
 # --- Initialize selected page in session state
@@ -39,8 +39,8 @@ cols = st.columns(3)
 pages_details = list(
     zip(
         cols,
-        [PAGE1, PAGE2],
-        [page_chatbot_saintamand.build_page, page_chronology_saintamand.build_page],
+        [PAGE1],
+        [page_chatbot_saintamand.build_page],
     )
 )
 

@@ -50,7 +50,8 @@ def compress_cells(project_title: str, df_tables: pd.DataFrame) -> pd.DataFrame:
                     "len_min": min(len(cell1), len(cell2)),
                 }
             )
-    df_distances = pd.DataFrame(distances)
+
+    df_distances = pd.DataFrame(distances, columns=["idx1", "idx2", "dst", "len_min"])
 
     # 3. make groups of cells to merged with the Graph connected components algorithm
 
@@ -80,7 +81,7 @@ def compress_cells(project_title: str, df_tables: pd.DataFrame) -> pd.DataFrame:
     # 4. group and apply aggregation
     df_compressed_info = df_grouped.groupby("group").agg(custom_agg)
 
-    # 5. clean and cheks
+    # 5. clean and checks
 
     df = df_compressed_info
 

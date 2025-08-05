@@ -21,6 +21,7 @@ def load(filename: str) -> Optional[Any]:
 
     path: Path = PATH_CACHE / filename
     if not path.exists():
+        # raise ValueError(f"{path} does not exist.")
         return None
 
     if path.suffix == "":  # folder

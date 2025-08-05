@@ -11,11 +11,12 @@ from tqdm import tqdm
 from backend.read_pdf import read_pdf
 from backend.saint_amand.compress_cells import compress_cells
 from backend.saint_amand.compute_cr_page_number import compute_cr_page_numbers
+from backend.saint_amand.projects import Projects
 from backend.saint_amand.split_page_into_projects import split_pages_into_projects
 from backend.saint_amand.split_project_into_cells import split_projects_into_cells
 from frontend.filters import Filters
 from helper import cache
-from vars import PATH_DOCS, PATH_SAINT_AMAND_INTEGRAL
+from vars import PATH_DOCS, PATH_MAUBEUGE_INTEGRAL, PATH_SAINT_AMAND_INTEGRAL
 
 # ----------------- Helper -----------------
 
@@ -128,10 +129,14 @@ def filter_compressed(
 
 
 def save_infos(
-    df_cr: pd.DataFrame, df_tables: pd.DataFrame, df_compressed: pd.DataFrame
+    label: str,
+    df_cr: pd.DataFrame,
+    df_tables: pd.DataFrame,
+    df_compressed: pd.DataFrame,
 ) -> None:
-    cache.save("df_cr.csv", df_cr)
-    cache.save("df_tables.csv", df_tables)
+
+    cache.save(f"dfs/{label}_cr.csv", df_cr)
+    cache.save(f"dfs/{label}_tables.csv", df_tables)
 
     # pre-process
     df_compressed = df_compressed.copy()
@@ -139,22 +144,26 @@ def save_infos(
         lambda dates: [date.strftime("%d-%m-%Y") for date in dates]
     )
 
-    cache.save("df_compressed.csv", df_compressed)
+    cache.save(f"dfs/{label}_compressed.csv", df_compressed)
+
+    print("DataFrames have been saved.")
 
 
 # ----------------- Load -----------------
 
 
-def load_df_cr() -> Optional[pd.DataFrame]:
-    return cache.load("df_cr.csv")
+def load_df_cr(label: str) -> Optional[pd.DataFrame]:
+    return cache.load(f"dfs/{label}_cr.csv")
 
 
-def load_df_tables() -> Optional[pd.DataFrame]:
-    return cache.load("df_tables.csv")
+def load_df_tables(label: str) -> Optional[pd.DataFrame]:
+    return cache.load(f"dfs/{label}_tables.csv")
 
 
-def load_df_compressed() -> Optional[pd.DataFrame]:
-    df = cache.load("df_compressed.csv")
+def load_df_compressed(label: str) -> Optional[pd.DataFrame]:
+    df = cache.load(f"dfs/{label}_compressed.csv")
+
+    print(df)
 
     # convert nums_cr and pages
     df["nums_cr"] = df["nums_cr"].apply(json.loads)
@@ -173,39 +182,56 @@ def load_df_compressed() -> Optional[pd.DataFrame]:
 # ----------------- Main -----------------
 
 
-def extract_infos_saint_amand(
+def extract_infos(
+    path_pdf: Path,
+    project: Projects,
     projects_to_extract: Optional[Union[str, List[str]]],
     date_bounds: Optional[Tuple[datetime, datetime]] = None,
     cr_num_bounds: Optional[Tuple[int, int]] = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
 
-    path_pdf = PATH_SAINT_AMAND_INTEGRAL
-
     # 1. read
     pages = read_pdf(path_pdf)
 
+    print(pages[9])
+
     # 2. cr
-    df_cr = compute_cr_page_numbers(pages)
+    df_cr = compute_cr_page_numbers(pages, project=project)
 
     # filter by cr numbers
     df_cr = filter_cr(df_cr, cr_num_bounds)
 
+    # df_cr = df_cr[df_cr["num_cr"] == 2]
+    print(df_cr)
+
     # 3. row tables
-    df_row_tables = split_pages_into_projects(pages, df_cr)
+    df_row_tables = split_pages_into_projects(pages, df_cr, project)
+    print(df_row_tables)
+
+    # print(df_row_tables[df_row_tables["text_table"].str.contains("MYRTHA")])
 
     # 4. tables
-    df_tables = split_projects_into_cells(df_row_tables)
+    df_tables = split_projects_into_cells(df_row_tables, project)
+    print(df_tables)
+
+    print(df_tables.columns)
+    print(df_tables["title"].unique().tolist())
 
     # filter by project name and dates
     df_tables = filter_tables(
         df_tables, projects_to_extract=projects_to_extract, date_bounds=date_bounds
     )
 
+    if projects_to_extract is None:
+        projects_to_extract = df_tables["title"].unique()
+
     # error handling
     if len(projects_to_extract) != len(df_tables["title"].unique()):
         raise RuntimeError(
             f"{projects_to_extract} ; {df_tables['title'].unique().tolist()}"
         )
+
+    df_tables = df_tables[df_tables["date"].notna()]
 
     # 5. compress
 
@@ -223,10 +249,12 @@ def extract_infos_saint_amand(
 
 
 if __name__ == "__main__":
-    projects = ["Lot 2 ", "Lot 14 ", "Lot 24 "]
-    df_cr, df_tables, df_compressed = extract_infos_saint_amand(
-        projects_to_extract=projects
+    projects_name = ["Lot 2 ", "Lot 14 ", "Lot 24 "]
+    df_cr, df_tables, df_compressed = extract_infos(
+        path_pdf=PATH_MAUBEUGE_INTEGRAL,
+        project=Projects.MAUBEUGE,
+        projects_to_extract=None,
     )
 
     if True:
-        save_infos(df_cr, df_tables, df_compressed)
+        save_infos("maubeuge", df_cr, df_tables, df_compressed)

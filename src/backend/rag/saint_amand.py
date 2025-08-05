@@ -14,12 +14,12 @@ from backend.saint_amand.extract_all_infos import (
 from frontend.filters import Filters
 from vars import PATH_MODEL_MINI
 
-FILENAME_EMBEDDINGS = "embeddings_saint_amand.pt"
+FILENAME_EMBEDDINGS = "embeddings_maubeuge.pt"
 
 
 def load_data_retriever() -> pd.DataFrame:
     print("Loading data...")
-    df = load_df_compressed()
+    df = load_df_compressed("maubeuge")
     df = filter_compressed(
         df,
         projects_to_extract=None,  # projects_to_extract=["Lot 2 ", "Lot 14 "], cr_num_bounds=(1, 10)
@@ -93,7 +93,7 @@ class RagSaintAmand(RagPipeline):
 
 
 if __name__ == "__main__":
-    if False:
+    if True:
         numerize_data()
     else:
         rag_saint_amand = RagSaintAmand()

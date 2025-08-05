@@ -18,6 +18,7 @@ except:
 
 # docs
 PATH_SAINT_AMAND_INTEGRAL = PATH_DOCS / "intégrale CR chantier Saint Amand.pdf"
+PATH_MAUBEUGE_INTEGRAL = PATH_DOCS / "intégrale CR chantier Maubeuge.pdf"
 
 # models
 PATH_MODEL_MINI = PATH_MODELS / "all-MiniLM-L6-v2"

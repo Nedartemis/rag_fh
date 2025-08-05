@@ -1,12 +1,51 @@
 import re
+from typing import Optional, Tuple
 
 import pandas as pd
 from tqdm import tqdm
 
 from backend.saint_amand import TYPE_PAGES
+from backend.saint_amand.projects import Projects
 
 
-def compute_cr_page_numbers(pages: TYPE_PAGES) -> pd.DataFrame:
+def extract_num_cr_saint_amand(text_page: str) -> Optional[Tuple[str, int]]:
+    # search cr number
+    nums = re.findall(r"CR( [A-Z]{3})? (N° )?(\d\d)", text_page)
+
+    # not found
+    if len(nums) == 0:
+        return None
+
+    # found
+
+    # check consistency
+    num_cr = nums[0][2]
+    if not all(num_iter == num_cr for _, _, num_iter in nums):
+        # fix inconsistency
+        nums = [e for e in nums if e[0]]
+
+    return nums[0][0], int(nums[0][2])
+
+
+def extract_num_cr_maubeuge(text_page: str) -> Optional[Tuple[str, int]]:
+    # search cr number
+    nums = re.findall(
+        r"AMVS – Construction d’un centre aquatique intercommunal – CR (\d\d)",
+        text_page,
+    )
+
+    assert len(nums) == 1
+
+    return "", int(nums[0])
+
+
+EXTRACT_NUM_CR = {
+    Projects.SAINT_AMAND: extract_num_cr_saint_amand,
+    Projects.MAUBEUGE: extract_num_cr_maubeuge,
+}
+
+
+def compute_cr_page_numbers(pages: TYPE_PAGES, project: Projects) -> pd.DataFrame:
 
     # extract cr number from text
     numbers_cr = {}
@@ -15,24 +54,15 @@ def compute_cr_page_numbers(pages: TYPE_PAGES) -> pd.DataFrame:
         total=len(pages),
         desc="Extracting num cr from text page",
     ):
-        # search cr number
-        nums = re.findall(r"CR( [A-Z]{3})? (N° )?(\d\d)", text)
-
-        # not found
-        if len(nums) == 0:
+        res = EXTRACT_NUM_CR[project](text)
+        if res is None:
             print(f"Page {num_page} does not have a cr number")
             continue
 
-        # found
-
-        # check consistency
-        num_cr = nums[0][2]
-        if not all(num_iter == num_cr for _, _, num_iter in nums):
-            # fix inconsistency
-            nums = [e for e in nums if e[0]]
+        label, num_cr = res
 
         # store it with by taking the updated list
-        numbers_cr[num_page] = nums[0][0], int(nums[0][2])
+        numbers_cr[num_page] = label, num_cr
 
     # compute start and end pages of each CR
     cr_begin_end = {}

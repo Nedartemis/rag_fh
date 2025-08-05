@@ -5,7 +5,7 @@ import pandas as pd
 
 from backend.saint_amand.extract_all_infos import (
     convert_filters_to_args,
-    extract_infos_saint_amand,
+    extract_infos,
     filter_compressed,
     load_df_compressed,
 )
@@ -97,11 +97,11 @@ def extract_infos_and_write_doc(path_docx_to_write: Path, filters: Filters) -> N
     filters_args = convert_filters_to_args(filters)
 
     # 1. get infos
-    df_compressed = load_df_compressed()
+    df_compressed = load_df_compressed(label="maubeuge")
     if df_compressed is not None:
         df_compressed = filter_compressed(df_compressed, **filters_args)
     else:  # need to compute
-        _, _, df_compressed = extract_infos_saint_amand(
+        _, _, df_compressed = extract_infos(
             projects_to_extract=filters.projects, **filters_args
         )
 
