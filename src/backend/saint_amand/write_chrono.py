@@ -35,7 +35,7 @@ def write_chrono(
 
     # --- Title ---
     doc.add_text(
-        content=f"Saint Amand résumé CR {cr_num_bounds[0]}-{cr_num_bounds[1]}",
+        content=f"Maubeuge résumé CR {cr_num_bounds[0]}-{cr_num_bounds[1]}",
         fontsize=18,
         alignement=WD_PARAGRAPH_ALIGNMENT.CENTER,
     )
