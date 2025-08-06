@@ -3,7 +3,7 @@ from typing import Tuple
 
 import pandas as pd
 
-from backend.saint_amand.extract_all_infos import (
+from backend.preprocess_crs.extract_all_infos import (
     convert_filters_to_args,
     extract_infos,
     filter_compressed,
