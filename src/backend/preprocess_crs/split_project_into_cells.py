@@ -209,15 +209,6 @@ def split_projects_into_cells(
         Projects.MAUBEUGE: _preprocess_table,
     }[project](df_row_tables)
 
-    print(df_row_tables)
-
-    for _, table in df_row_tables.iterrows():
-        text_table = table["text_table"]
-        if not is_start_line_table_maubeuge(text_table):
-            print(table["page_table_start"])
-            print(text_table.split("\n")[0])
-            print("--")
-
     data = []
 
     # process table by table
