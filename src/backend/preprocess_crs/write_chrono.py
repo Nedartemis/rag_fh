@@ -9,7 +9,8 @@ from backend.preprocess_crs.extract_all_infos import (
     filter_compressed,
     load_df_compressed,
 )
-from frontend.filters import Filters
+from backend.preprocess_crs.filters import Filters
+from backend.preprocess_crs.projects import Projects
 from helper.write_docx import LIGHT_BLUE, LIGHT_GREY, WD_PARAGRAPH_ALIGNMENT, DocxWriter
 from vars import PATH_TMP
 
@@ -92,12 +93,14 @@ def write_chrono(
     print(f"Docx '{path_docx}' saved.")
 
 
-def extract_infos_and_write_doc(path_docx_to_write: Path, filters: Filters) -> None:
+def extract_infos_and_write_doc(
+    project: Projects, path_docx_to_write: Path, filters: Filters
+) -> None:
 
     filters_args = convert_filters_to_args(filters)
 
     # 1. get infos
-    df_compressed = load_df_compressed(label="maubeuge")
+    df_compressed = load_df_compressed(project=project)
     if df_compressed is not None:
         df_compressed = filter_compressed(df_compressed, **filters_args)
     else:  # need to compute

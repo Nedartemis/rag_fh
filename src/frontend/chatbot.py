@@ -2,6 +2,8 @@ from typing import Any, Callable, Dict
 
 import streamlit as st
 
+from backend.preprocess_crs.projects import Projects
+
 
 def build_chatbot(label: str, get_answer: Callable[[dict], str]):
 

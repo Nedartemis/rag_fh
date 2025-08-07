@@ -5,10 +5,10 @@ from typing import List, Tuple
 import pandas as pd
 from tqdm import tqdm
 
-from backend.saint_amand import TYPE_PAGES
-from backend.saint_amand.projects import Projects
+from backend.preprocess_crs import TYPE_PAGES
+from backend.preprocess_crs.projects import Projects
 
-OTHER_TABLES = [
+TABLES_HEADER_SAINT_AMAND = [
     "I – ORDRE DU JOUR DE LA PROCHAINE REUNION",
     "2 – OBSERVATIONS GENERALES",
     "3 – MAITRISE D'OUVRAGE",
@@ -75,7 +75,7 @@ TABLES_HEADER_MAUBEUGE = {
 def _is_start_line_table_saint_amand(line: str) -> bool:
     if line.startswith("Lot"):
         return True
-    return any(line.startswith(e + " ") for e in OTHER_TABLES)
+    return any(line.startswith(e + " ") for e in TABLES_HEADER_SAINT_AMAND)
 
 
 def is_start_line_table_maubeuge(line: str) -> bool:

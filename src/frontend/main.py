@@ -5,14 +5,10 @@ sys.path.append("src/")
 
 import streamlit as st
 
-from frontend import (
-    page_chatbot_custom,
-    page_chatbot_saintamand,
-    page_chronology_saintamand,
-)
+from frontend import page_chatbot_cr, page_chatbot_custom, page_chronology_cr
 
-PAGE1 = "Question-Réponse  \nMaubeuge"
-PAGE2 = "Chronologie  \nMaubeuge"
+PAGE1 = "Question-Réponse"
+PAGE2 = "Chronologie"
 PAGE3 = "Question-Réponse  \nPersonalisable"
 
 # --- Initialize selected page in session state
@@ -40,7 +36,7 @@ pages_details = list(
     zip(
         cols,
         [PAGE1, PAGE2],
-        [page_chatbot_saintamand.build_page, page_chronology_saintamand.build_page],
+        [page_chatbot_cr.build_page, page_chronology_cr.build_page],
     )
 )
 

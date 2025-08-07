@@ -3,21 +3,25 @@ from datetime import datetime
 import streamlit as st
 
 import frontend.front_helper as front_helper
-from backend.saint_amand.split_page_into_projects import TABLES_HEADER_MAUBEUGE
-from backend.saint_amand.write_chrono import extract_infos_and_write_doc
+from backend.preprocess_crs.filters import Filters
+from backend.preprocess_crs.projects import Projects
+from backend.preprocess_crs.write_chrono import extract_infos_and_write_doc
 from frontend.buttons import build_dowload_event
+from frontend.choose_project import build_choose_project
+from frontend.cr_filters import build_filters
 from frontend.description import build_description
-from frontend.filters import Filters, build_filters
 from vars import PATH_TMP
 
 
-def compute_chrono_bytes(filters: Filters):
+def compute_chrono_bytes(project: Projects, filters: Filters):
 
     path_docx = PATH_TMP / "chrono.docx"
 
     # write
     print("Write data...")
-    extract_infos_and_write_doc(path_docx_to_write=path_docx, filters=filters)
+    extract_infos_and_write_doc(
+        project=project, path_docx_to_write=path_docx, filters=filters
+    )
 
     # load
     bytes = front_helper.read(path_docx)
@@ -30,7 +34,7 @@ def build_page():
     # description
     build_description(
         """
-        Télécharger l'ensemble des **actions** de chaque projet du chantier **Maubeuge**.
+        Télécharger l'ensemble des **actions** de chaque projet du chantier **de votre choix**.
         Les actions **identiques** répétées dans plusieurs CRs sont **rassemblées**.
         Les actions sont **rangées par chronologie**.
         Bien que condensées, ces informations restent très **volumineuses**.
@@ -38,29 +42,12 @@ def build_page():
     """
     )
 
+    # choose between projects
+    project = build_choose_project()
+
     # filters
-    bounds = Filters(
-        projects=list(TABLES_HEADER_MAUBEUGE.keys()),
-        date_min=datetime(2012, 8, 30),
-        date_max=datetime(2016, 8, 26),
-        cr_num_min=1,
-        cr_num_max=99,
-    )
-    # bounds = Filters(
-    #     projects=["Lot 2 ", "Lot 14 ", "Lot 24 "],
-    #     date_min=datetime(2011, 3, 15),
-    #     date_max=datetime(2013, 11, 21),
-    #     cr_num_min=1,
-    #     cr_num_max=91,
-    # )
-    # default = Filters(
-    #     projects=["Lot 2 ", "Lot 14 "],
-    #     date_min=bounds.date_min,
-    #     date_max=bounds.date_max,
-    #     cr_num_min=1,
-    #     cr_num_max=5,
-    # )
-    filters = build_filters(bounds=bounds, default=bounds, label="chrono")
+    bounds = project.load_bounds()
+    filters = build_filters(bounds=bounds, default=bounds)
 
     # button dowload chronology
 
@@ -98,7 +85,7 @@ def build_page():
         "Calculer chronologie",
         on_click=lambda: col2.download_button(
             label="Télécharger chronologie",
-            data=compute_chrono_bytes(filters),
+            data=compute_chrono_bytes(project, filters),
             file_name=filename,
         ),
     )

@@ -5,8 +5,8 @@ from typing import List, Optional, Tuple
 import pandas as pd
 from tqdm import tqdm
 
-from backend.saint_amand.projects import Projects
-from backend.saint_amand.split_page_into_projects import (
+from backend.preprocess_crs.projects import Projects
+from backend.preprocess_crs.split_page_into_projects import (
     TABLES_HEADER_MAUBEUGE,
     is_start_line_table_maubeuge,
 )

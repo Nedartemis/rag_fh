@@ -4,22 +4,23 @@ from typing import List, Tuple
 import numpy as np
 import pandas as pd
 
-from backend.rag.rag_pipeline import RagPipeline
-from backend.rag.retriever import SentenceTransformerWrapper
-from backend.saint_amand.extract_all_infos import (
+from backend.preprocess_crs.extract_all_infos import (
     convert_filters_to_args,
     filter_compressed,
     load_df_compressed,
 )
-from frontend.filters import Filters
+from backend.preprocess_crs.filters import Filters
+from backend.preprocess_crs.projects import Projects
+from backend.rag.rag_pipeline import RagPipeline
+from backend.rag.retriever import SentenceTransformerWrapper
 from vars import PATH_MODEL_MINI
 
-FILENAME_EMBEDDINGS = "embeddings_maubeuge.pt"
+FILENAME_EMBEDDINGS = "embeddings_{label}.pt"
 
 
-def load_data_retriever() -> pd.DataFrame:
+def load_data_retriever(project: Projects) -> pd.DataFrame:
     print("Loading data...")
-    df = load_df_compressed("maubeuge")
+    df = load_df_compressed(project)
     df = filter_compressed(
         df,
         projects_to_extract=None,  # projects_to_extract=["Lot 2 ", "Lot 14 "], cr_num_bounds=(1, 10)
@@ -28,10 +29,10 @@ def load_data_retriever() -> pd.DataFrame:
     return df
 
 
-def numerize_data() -> None:
+def numerize_data(project: Projects) -> None:
 
     # load data
-    df = load_data_retriever()
+    df = load_data_retriever(project)
 
     # load retriever
     print("Loading retriever...")
@@ -43,19 +44,21 @@ def numerize_data() -> None:
 
     # saving
     print("Saving...")
-    retriever.save(embeddings, FILENAME_EMBEDDINGS)
+    retriever.save(embeddings, FILENAME_EMBEDDINGS.format(label=project.get_label()))
 
 
-def load_numerization() -> np.ndarray:
+def load_numerization(project: Projects) -> np.ndarray:
     print("Load numerization...")
-    return SentenceTransformerWrapper.load_embeddings(filename=FILENAME_EMBEDDINGS)
+    return SentenceTransformerWrapper.load_embeddings(
+        filename=FILENAME_EMBEDDINGS.format(label=project.get_label())
+    )
 
 
-class RagSaintAmand(RagPipeline):
-    def __init__(self):
+class RagCr(RagPipeline):
+    def __init__(self, project: Projects):
         super().__init__()
-        self.df = load_data_retriever()
-        self.embeddings = load_numerization()
+        self.df = load_data_retriever(project)
+        self.embeddings = load_numerization(project)
 
         assert len(self.df) == self.embeddings.shape[0]
 
@@ -94,9 +97,9 @@ class RagSaintAmand(RagPipeline):
 
 if __name__ == "__main__":
     if True:
-        numerize_data()
+        numerize_data(Projects.SAINT_AMAND)
     else:
-        rag_saint_amand = RagSaintAmand()
+        rag_cr = RagCr()
 
         question = "Quelles sont les aléas survenus ?"
         filters = Filters(
@@ -106,4 +109,4 @@ if __name__ == "__main__":
             cr_num_min=1,
             cr_num_max=5,
         )
-        rag_saint_amand.ask(question, filters)
+        rag_cr.ask(question, filters)

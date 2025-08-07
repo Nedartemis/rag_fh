@@ -4,8 +4,8 @@ from typing import Optional, Tuple
 import pandas as pd
 from tqdm import tqdm
 
-from backend.saint_amand import TYPE_PAGES
-from backend.saint_amand.projects import Projects
+from backend.preprocess_crs import TYPE_PAGES
+from backend.preprocess_crs.projects import Projects
 
 
 def extract_num_cr_saint_amand(text_page: str) -> Optional[Tuple[str, int]]:

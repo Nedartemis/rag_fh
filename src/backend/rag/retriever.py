@@ -23,7 +23,7 @@ class SentenceTransformerWrapper:
 
 
 if __name__ == "__main__":
-    from backend.saint_amand.extract_all_infos import (
+    from backend.preprocess_crs.extract_all_infos import (
         filter_compressed,
         load_df_compressed,
     )

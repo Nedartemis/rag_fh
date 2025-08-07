@@ -1,20 +1,9 @@
-from dataclasses import dataclass
-from datetime import datetime
-from typing import List
-
 import streamlit as st
 
-
-@dataclass
-class Filters:
-    projects: List[str]
-    date_min: datetime
-    date_max: datetime
-    cr_num_min: int
-    cr_num_max: int
+from backend.preprocess_crs.filters import Filters
 
 
-def build_filters(bounds: Filters, default: Filters, label: str) -> Filters:
+def build_filters(bounds: Filters, default: Filters) -> Filters:
 
     # --- POP-UP RÉGLAGES
     with st.expander("⚙️ Filtres", expanded=False):

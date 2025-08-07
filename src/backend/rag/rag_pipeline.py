@@ -8,7 +8,6 @@ import pandas as pd
 
 from backend.rag.claude_client import ClaudeClient
 from backend.rag.retriever import SentenceTransformerWrapper
-from frontend.filters import Filters
 from vars import PATH_MODEL_MINI
 
 

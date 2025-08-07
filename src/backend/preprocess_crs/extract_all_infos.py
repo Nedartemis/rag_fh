@@ -10,11 +10,11 @@ from tqdm import tqdm
 
 from backend.preprocess_crs.compress_cells import compress_cells
 from backend.preprocess_crs.compute_cr_page_number import compute_cr_page_numbers
+from backend.preprocess_crs.filters import Filters
 from backend.preprocess_crs.projects import Projects
 from backend.preprocess_crs.split_page_into_projects import split_pages_into_projects
 from backend.preprocess_crs.split_project_into_cells import split_projects_into_cells
 from backend.read_pdf import read_pdf
-from frontend.filters import Filters
 from helper import cache
 from vars import PATH_DOCS, PATH_MAUBEUGE_INTEGRAL, PATH_SAINT_AMAND_INTEGRAL
 
@@ -135,10 +135,7 @@ def save_infos(
     df_compressed: pd.DataFrame,
 ) -> None:
 
-    label = {
-        Projects.SAINT_AMAND: "saint-amand",
-        Projects.MAUBEUGE: "maubeuge",
-    }[project]
+    label = project.get_label()
 
     cache.save(f"dfs/{label}_cr.csv", df_cr)
     cache.save(f"dfs/{label}_tables.csv", df_tables)
@@ -157,16 +154,16 @@ def save_infos(
 # ----------------- Load -----------------
 
 
-def load_df_cr(label: str) -> Optional[pd.DataFrame]:
-    return cache.load(f"dfs/{label}_cr.csv")
+def load_df_cr(project: Projects) -> Optional[pd.DataFrame]:
+    return cache.load(f"dfs/{project.get_label()}_cr.csv")
 
 
-def load_df_tables(label: str) -> Optional[pd.DataFrame]:
-    return cache.load(f"dfs/{label}_tables.csv")
+def load_df_tables(project: Projects) -> Optional[pd.DataFrame]:
+    return cache.load(f"dfs/{project.get_label()}_tables.csv")
 
 
-def load_df_compressed(label: str) -> Optional[pd.DataFrame]:
-    df = cache.load(f"dfs/{label}_compressed.csv")
+def load_df_compressed(project: Projects) -> Optional[pd.DataFrame]:
+    df = cache.load(f"dfs/{project.get_label()}_compressed.csv")
 
     # convert nums_cr and pages
     df["nums_cr"] = df["nums_cr"].apply(json.loads)
