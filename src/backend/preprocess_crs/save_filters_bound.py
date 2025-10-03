@@ -19,6 +19,6 @@ def _save_filters_bounds_projects() -> None:
 if __name__ == "__main__":
     print("---")
     _save_filters_bounds_projects()
-    obj = Filters.load(Projects.MAUBEUGE.get_label())
+    obj = Filters.load(Projects.AUBY.get_label())
     print(obj)
     print("---")

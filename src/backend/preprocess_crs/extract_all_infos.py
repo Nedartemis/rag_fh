@@ -16,7 +16,7 @@ from backend.preprocess_crs.split_page_into_projects import split_pages_into_pro
 from backend.preprocess_crs.split_project_into_cells import split_projects_into_cells
 from backend.read_pdf import read_pdf
 from helper import cache
-from vars import PATH_DOCS, PATH_MAUBEUGE_INTEGRAL, PATH_SAINT_AMAND_INTEGRAL
+from vars import PATH_AUBY_INTEGRAL, PATH_MAUBEUGE_INTEGRAL, PATH_SAINT_AMAND_INTEGRAL
 
 # ----------------- Helper -----------------
 
@@ -193,9 +193,12 @@ def extract_infos(
     path_pdf = {
         Projects.SAINT_AMAND: PATH_SAINT_AMAND_INTEGRAL,
         Projects.MAUBEUGE: PATH_MAUBEUGE_INTEGRAL,
+        Projects.AUBY: PATH_AUBY_INTEGRAL,
     }[project]
 
     pages = read_pdf(path_pdf)
+
+    pages = [page.replace("\xa0", " ").replace("‐", "-") for page in pages]
 
     # 2. cr
     df_cr = compute_cr_page_numbers(pages, project=project)
@@ -203,8 +206,21 @@ def extract_infos(
     # filter by cr numbers
     df_cr = filter_cr(df_cr, cr_num_bounds)
 
+    # if project == Projects.AUBY:
+    #     df_cr = df_cr[~df_cr["num_cr"].isin([51, 52])]
+
     # 3. row tables
     df_row_tables = split_pages_into_projects(pages, df_cr, project)
+
+    # print(df_row_tables.loc[5, "text_table"].split("\n"))
+
+    if project == Projects.AUBY:
+        df_row_tables = df_row_tables[
+            ~df_row_tables["page_table_start"].isin([32, 189, 256])
+        ]
+        # df_row_tables = df_row_tables[df_row_tables["page_table_start"] == 256]
+
+    print(df_row_tables)
 
     # 4. tables
     df_tables = split_projects_into_cells(df_row_tables, project)
@@ -214,14 +230,15 @@ def extract_infos(
         df_tables, projects_to_extract=projects_to_extract, date_bounds=date_bounds
     )
 
-    if projects_to_extract is None:
-        projects_to_extract = df_tables["title"].unique()
+    print(df_tables)
 
-    # error handling
-    if len(projects_to_extract) != len(df_tables["title"].unique()):
-        raise RuntimeError(
-            f"{projects_to_extract} ; {df_tables['title'].unique().tolist()}"
-        )
+    if projects_to_extract is not None:
+
+        # error handling
+        if len(projects_to_extract) != len(df_tables["title"].unique()):
+            raise RuntimeError(
+                f"{projects_to_extract} ; {df_tables['title'].unique().tolist()}"
+            )
 
     df_tables = df_tables[df_tables["date"].notna()]
 
@@ -234,6 +251,7 @@ def extract_infos(
         )
         dfs_compressed.append(df)
 
+    # print(dfs_compressed)
     df_compressed = pd.concat(dfs_compressed, axis="index")
 
     # 6. return
@@ -241,9 +259,9 @@ def extract_infos(
 
 
 if __name__ == "__main__":
-    lots_name = ["Lot 2 ", "Lot 14 ", "Lot 24 "]
+    # lots_name = ["Lot 2 ", "Lot 14 ", "Lot 24 "]
 
-    project = Projects.MAUBEUGE
+    project = Projects.AUBY
 
     df_cr, df_tables, df_compressed = extract_infos(
         project=project,

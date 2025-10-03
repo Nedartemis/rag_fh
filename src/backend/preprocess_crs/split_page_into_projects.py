@@ -72,6 +72,61 @@ TABLES_HEADER_MAUBEUGE = {
 }
 
 
+TABLES_HEADER_AUBY = {
+    "MAIRIE D’AUBY": "MAIRIE D’AUBY",
+    "SOREC": "SOREC",
+    "DUVAL-RAYNAL SARL D’ARCHITECTURE": "DRD",
+    "D R D ARCHITECTURE": "DRD",
+    "DRD": "DRD",
+    "ECONOMIE 80": "ECONOMIE 80",
+    "BERIM": "BERIM",
+    "SPORT LOISIRS CONCEPT": "SPORT LOISIRS CONCEPT",
+    "ACOUSTIBEL": "ACOUSTIBEL",
+    "SOCOTEC": "SOCOTEC",
+    "SARL LEFEVRE": "SARL LEFEVRE",
+    "Agi2d": "Agi2d",
+    "NOREADE": "NOREADE",
+    "LEFEVRE": "LEFEVRE",
+    "BAUDIN CHATEAUNEUF": "BC",
+    "BC": "BC",
+    "Architecture Aluminium": "Architecture Aluminium",
+    "Architecture \nAluminium": "Architecture Aluminium",
+    "S.R.C.M.": "S.R.C.M.",
+    "SRCM": "S.R.C.M.",
+    "S.D.I.": "SDI",
+    "SDI": "SDI",
+    "CERGNUL Construction": "CERGNUL",
+    "CERGNUL": "CERGNUL",
+    "NAVIC": "NAVIC",
+    "CABRE SA": "CABRE SA",
+    "LA MAISON DE LA PISCINE": "LA MAISON DE LA PISCINE",
+    "LMP": "LMP",
+    "APPLICAM": "APPLICAM",
+    "SA MISSENARD QUINT B": "MQB",
+    "MISSENARD \nQUINT B": "MQB",
+    "MISSENARD QUINT B": "MQB",
+    "MQB": "MQB",
+    "MQB": "MQB",
+    "EAU AIR SYSTEME": "EAS",
+    "EAU AIR \nSYSTEME": "EAS",
+    "EAS": "EAS",
+    "SAS Daniel DEVRED": "SAS Daniel DEVRED",
+    "DANIEL \nDEVRED SAS": "SAS Daniel DEVRED",
+    "DANIEL DEVRED SAS": "SAS Daniel DEVRED",
+    "DEVRED": "SAS Daniel DEVRED",
+    "Entreprise Jean LEFEBVRE": "Entreprise Jean LEFEBVRE",
+    "Ent Jean \nLEFEBVRE": "Entreprise Jean LEFEBVRE",
+    "Ent Jean LEFEBVRE": "Entreprise Jean LEFEBVRE",
+    "EJL": "Entreprise Jean LEFEBVRE",
+    # extra
+    "VILLE": "VILLE",
+    "TCE": "TCE",
+    "VILLE AUBY": "VILLE AUBY",
+    "DR": "DR",
+    "MYRTHA": "MYRTHA",
+}
+
+
 def _is_start_line_table_saint_amand(line: str) -> bool:
     if line.startswith("Lot"):
         return True
@@ -82,8 +137,30 @@ def is_start_line_table_maubeuge(line: str) -> bool:
     return any(line.startswith(e) for e in TABLES_HEADER_MAUBEUGE.keys() if e)
 
 
+MONKEY_FIXES_LIST = [
+    "APPLICAM,",
+    "APPLICAM.",
+    "EAS de prévoir ce matériel",
+    "LMP non présent, non signé et convoqué",
+    "LMP non",
+    "LMP, ",
+]
+
+
+def is_start_line_table_auby(line: str) -> bool:
+    return all(not line.startswith(e) for e in MONKEY_FIXES_LIST) and any(
+        line.startswith(e) for e in TABLES_HEADER_AUBY.keys() if e
+    )
+
+
 def _to_remove_trash_maubeuge(text: str) -> bool:
     return text.startswith("AMVS – Construction d’un centre aquatique intercommunal")
+
+
+def _to_remove_trash_auby(text: str) -> bool:
+    return text.startswith(
+        "Mairie d’AUBY – Réhabilitation et extension de la piscine municipale"
+    )
 
 
 def split_pages_into_projects(
@@ -95,15 +172,32 @@ def split_pages_into_projects(
     is_start_line_table = {
         Projects.SAINT_AMAND: _is_start_line_table_saint_amand,
         Projects.MAUBEUGE: is_start_line_table_maubeuge,
+        Projects.AUBY: is_start_line_table_auby,
     }[project]
     offset_table_action = {
         Projects.SAINT_AMAND: 3,
         Projects.MAUBEUGE: 2,
+        Projects.AUBY: 2,
     }[project]
     to_remove = {
         Projects.SAINT_AMAND: lambda x: False,
         Projects.MAUBEUGE: _to_remove_trash_maubeuge,
+        Projects.AUBY: _to_remove_trash_auby,
     }[project]
+    headers: List[str] = {
+        Projects.SAINT_AMAND: TABLES_HEADER_SAINT_AMAND,
+        Projects.MAUBEUGE: TABLES_HEADER_MAUBEUGE.keys(),
+        Projects.AUBY: TABLES_HEADER_AUBY.keys(),
+    }[project]
+
+    # projects name with \n in their name
+    for header in headers:
+        if not "\n" in header:
+            continue
+        header_without_newline = header.replace("\n", "")
+
+        for idx, page in enumerate(pages):
+            pages[idx] = page.replace(header, header_without_newline)
 
     # process pages by cr
     for _, row in tqdm(list(df_cr.iterrows()), "Split pages into projects"):
@@ -140,6 +234,7 @@ def split_pages_into_projects(
         lst.append((buffer.start_page, current_page, buffer.text))
 
         # remove those that are not projects
+
         tables.extend(
             {
                 "num_cr": cr,

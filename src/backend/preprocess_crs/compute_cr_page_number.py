@@ -39,9 +39,22 @@ def extract_num_cr_maubeuge(text_page: str) -> Optional[Tuple[str, int]]:
     return "", int(nums[0])
 
 
+def extract_num_cr_auby(text_page: str) -> Optional[Tuple[str, int]]:
+    # search cr number
+    nums = re.findall(
+        r"Mairie d’AUBY – Réhabilitation et extension de la piscine municipale – CR (\d\d)",
+        text_page,
+    )
+
+    assert len(nums) <= 1
+
+    return "", int(nums[0]) if len(nums) == 1 else 5
+
+
 EXTRACT_NUM_CR = {
     Projects.SAINT_AMAND: extract_num_cr_saint_amand,
     Projects.MAUBEUGE: extract_num_cr_maubeuge,
+    Projects.AUBY: extract_num_cr_auby,
 }
 
 
