@@ -1,3 +1,4 @@
+import re
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional
@@ -21,6 +22,19 @@ def set_cell_background(cell, color):
     shd = OxmlElement("w:shd")
     shd.set(qn("w:fill"), color)
     tcPr.append(shd)
+
+
+def sanitize_xml_string(text):
+    # Remove NULL bytes
+    text = text.replace("\x00", "")
+    # Remove other invalid control characters (except tab, newline, carriage return)
+    # Regex matches characters outside of valid XML ranges (0x9, 0xA, 0xD, 0x20-0xD7FF, 0xE000-0xFFFD, 0x10000-0x10FFFF)
+    # This is a more comprehensive approach for removal
+    invalid_xml_chars_pattern = (
+        "[^\x09\x0a\x0d\x20-\xd7FF\xe000-\xffFD\U00010000-\U0010ffff]"
+    )
+    text = re.sub(invalid_xml_chars_pattern, "", text)
+    return text
 
 
 class DocxWriter:
@@ -69,7 +83,7 @@ class DocxWriter:
         for row_idx, (_, row) in enumerate(content.iterrows()):
             for col_idx, text in enumerate(row):
                 cell = table.cell(row_idx + 1, col_idx)
-                cell.text = text
+                cell.text = sanitize_xml_string(text)
                 set_cell_background(cell, color_cells)
 
         # width
