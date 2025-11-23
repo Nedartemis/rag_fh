@@ -9,10 +9,10 @@ from backend.preprocess_crs import TYPE_PAGES
 from backend.preprocess_crs.projects import Projects
 
 TABLES_HEADER_SAINT_AMAND = [
-    "I – ORDRE DU JOUR DE LA PROCHAINE REUNION",
-    "2 – OBSERVATIONS GENERALES",
-    "3 – MAITRISE D'OUVRAGE",
-    "4 – MAITRISE D'ŒUVRE",
+    #    "I – ORDRE DU JOUR DE LA PROCHAINE REUNION",
+    #    "2 – OBSERVATIONS GENERALES",
+    # "3 – MAITRISE D'OUVRAGE",
+    # "4 – MAITRISE D'ŒUVRE",
     "OPC",
     "BET STRUCTURE",
     "BET FLUIDES",
@@ -21,7 +21,7 @@ TABLES_HEADER_SAINT_AMAND = [
     "BUREAU DE CONTRÔLE",
     "SPS",
     "SSI",
-    "6 – OBSERVATIONS PAR CORPS D'ÉTAT",
+    # "6 – OBSERVATIONS PAR CORPS D'ÉTAT",
     "TOUS CORPS D’ETATS",
     "VI – ANNEXES",
 ]

@@ -43,10 +43,12 @@ def _extract_header_maubeuge(lines: List[str]) -> Tuple[str, str, List[str]]:
 
 def _extract_date_saint_amand(line: str) -> Optional[Tuple[datetime.datetime, str]]:
     groups = re.match(pattern=r"(\d\d/\d\d/\d\d)( |$)", string=line)
-    if len(groups) == 0:
+    if groups is None:
         return None
 
-    assert len(groups) == 1
+    groups = groups.groups()
+    assert not isinstance(groups, list) or len(groups) == 1
+
     date_str = line[:8]
     date = datetime.date(
         year=2000 + int(date_str[-2:]),
