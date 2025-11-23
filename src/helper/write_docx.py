@@ -69,14 +69,14 @@ class DocxWriter:
         table = self.doc.add_table(rows=nrows + 1, cols=ncols)
         table.style = "Table Grid"
         table.autofit = False
-        table.allow_autofit = False
+        # table.allow_autofit = False
 
         assert len(column_widths) == ncols
 
         # header
         for i, text in enumerate(content.columns):
             cell = table.cell(0, i)
-            cell.text = text
+            cell.text = sanitize_xml_string(text)
             set_cell_background(cell, color_header)
 
         # cells
